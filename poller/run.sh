@@ -2,5 +2,5 @@
 while [ true ]
 do
     poller
-    sleep 10
+    sleep 60
 done

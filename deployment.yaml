@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: burrow-poller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: burrow-poller
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: burrow
+        image: "ness2u/burrow:latest"
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1G
+          requests:
+            cpu: 200m
+            memory: 200m
+      - name: burrow-poller
+        image: "ness2u/burrow-poller:latest"
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1G
+          requests:
+            cpu: 200m
+            memory: 200m
