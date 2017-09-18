@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: burrow
+spec:  # specification of the pod's contents
+  restartPolicy: Never
+  containers:
+  - name: burrow
+    image: "ness2u/burrow:latest"
+  - name: burrow-poller
+    image: "ness2u/burrow-poller:latest"
