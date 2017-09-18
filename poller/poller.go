@@ -49,6 +49,21 @@ type LagWindow struct {
 	Timestamp int64 `json:"timestamp"`
 }
 
+type GroupLagOutput struct {
+	Group          string `json:"group"`
+	TotalLag       int64  `json:"totallag"`
+	MaxLag         int    `json:"maxlag"`
+	PartitionCount int    `json:"partition_count"`
+}
+
+type PartitionLagOutput struct {
+	Timestamp int64  `json:"timestamp"`
+	Group     string `json:"group"`
+	Topic     string `json:"topic"`
+	Partition int    `json:"partition"`
+	Lag       int    `json:"lag"`
+}
+
 func main() {
 
 	baseUri := "http://localhost:8000"
@@ -60,19 +75,55 @@ func main() {
 		for _, consumer := range consumers {
 
 			status := getConsumerStatus(baseUri, cluster, consumer)
-
-			jsonB, err := json.Marshal(status)
-			if err != nil {
-				panic("unable to decode json")
-			}
-
-			json := string(jsonB)
-			println(json)
-
+			generateOutput(status)
 		}
 
 	}
+}
 
+func createGroupOutput(status ConsumerStatus) string {
+
+	groupLagOutput := GroupLagOutput{status.Group, status.TotalLag, status.MaxLag, status.PartitionCount}
+	jsonB, err := json.Marshal(groupLagOutput)
+	if err != nil {
+		panic("unable to encode json")
+	}
+
+	return string(jsonB)
+}
+
+func createPartitionOutputs(status ConsumerStatus) []string {
+
+	outputs := []string{}
+	for _, partition := range status.Partitions {
+
+		partitionOutput := PartitionLagOutput{
+			partition.End.Timestamp,
+			status.Group,
+			partition.Topic,
+			partition.Partition,
+			partition.End.Lag}
+
+		jsonB, err := json.Marshal(partitionOutput)
+		if err != nil {
+			panic("unable to encode json")
+		}
+		json := string(jsonB)
+
+		outputs = append(outputs, json)
+	}
+
+	return outputs
+}
+
+func generateOutput(status ConsumerStatus) {
+	groupOutput := createGroupOutput(status)
+	partitionOutputs := createPartitionOutputs(status)
+
+	println(groupOutput)
+	for _, partitionOutput := range partitionOutputs {
+		println(partitionOutput)
+	}
 }
 
 func getConsumerStatus(baseUri string, cluster string, consumer string) ConsumerStatus {
